@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "Rf//KbjHJcN4sQ6q6/vSaHQmWUYXaMMJzcf2L7AGMCStNKEh4C4F4D9wza6KdEv/Yi//PTfLl3nIf4BQMp7R8g==",
+  "success": true,
+  "projectFilePath": "D:\\Бурсітєт\\2_course\\ООП\\MyExcelMAUIApp\\DemoParser.Parsing\\DemoParser.Parsing.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\asus\\.nuget\\packages\\antlr4.runtime.standard\\4.13.1\\antlr4.runtime.standard.4.13.1.nupkg.sha512"
+  ],
+  "logs": []
+}
