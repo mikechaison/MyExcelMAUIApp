@@ -8,7 +8,7 @@ public class Table
 {
     [JsonPropertyName("cells")]
     [JsonInclude]
-    public List<Cell> cells;
+    public List<Cell> cells { get; set; }
     [JsonPropertyName("CurrentCountColumn")]
     public int CurrentCountColumn { get; set; }
     [JsonPropertyName("CurrentCountRoW")]
@@ -29,15 +29,18 @@ public class Table
         this.CurrentCountColumn = currentCountColumn;
     }
 
+    //Додавання клітини в таблицю
     public void AddCellToTable(Cell cell)
     {
         cells.Add(cell);
     }
 
+    //Очищення усієї таблиці
     public void ClearTable(){
         cells.Clear();
     }
 
+    //Знаходження клітини за його місцезнаходженням
     public Cell FindCellByEntry(int row, int column)
     {
         Cell entryCell = null;
@@ -51,6 +54,7 @@ public class Table
         return entryCell;
     }
 
+    //Знаходження клітини за його іменем
     public Cell FindCellByName(string name)
     {
         Cell nameCell = null;
@@ -64,9 +68,31 @@ public class Table
         return nameCell;
     }
 
-    public bool TryCalculate(Cell ourcell)
+    //Очищення даних клітини таблиці
+    public void ClearCellData(Cell ourcell)
     {
-        var usedcells = ParseName(ourcell.expression);
+        foreach (string celln in ourcell.dependences)
+        {
+            Cell cellByName = FindCellByName(celln);
+            cellByName.appearance.Remove(ourcell.cellName);
+        }
+        ourcell.expression = "";
+        ourcell.dependences = new List<string>();
+        Calculator.GlobalScope[ourcell.cellName] = 0;
+        ourcell.cellEntry.Text = "";
+            
+    }
+
+    //Підготовка до перевірки на циклічну залежність
+    public bool TryCalculate(Cell ourcell, string expr)
+    {
+        var prevcells = ParseName(ourcell.expression);
+        foreach (string celln in prevcells)
+        {
+            Cell cellByName = FindCellByName(celln);
+            cellByName.appearance.Remove(ourcell.cellName);
+        }
+        var usedcells = ParseName(expr);
         ourcell.dependences = new List<string>();
         foreach (string celln in usedcells)
         {
@@ -74,13 +100,16 @@ public class Table
             Cell cellByName = FindCellByName(celln);
             cellByName.appearance.Add(ourcell.cellName);
         }
+        ourcell.expression = expr;
         if (CheckRecursion(ourcell.cellName, ourcell))
         {
+            ClearCellData(ourcell);
             return false;
         }
         return true;
     }
 
+    //Добування ідентифікаторів з виразу в клітині
     public static List<string> ParseName(string expression)
     {
         string[] lst = expression.Split(new char[]{'.', ',', ' ', '(', ')', '-', '+', '^', '*', '/'},
@@ -96,6 +125,7 @@ public class Table
         return ans;
     }
 
+    //Перевірка на циклічну залежність
     public bool CheckRecursion(string target, Cell cell)
     {
         bool ans = false;
@@ -114,6 +144,7 @@ public class Table
         return ans;
     }
 
+    //Переобчислення виразів в клітинах, які залежать від обраної клітини
     public void RecalculateRecursively(Cell cell)
     {
         foreach (string cellt in cell.appearance)

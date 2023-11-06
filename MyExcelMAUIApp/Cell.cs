@@ -45,6 +45,7 @@ public class Cell
         this.dependences = dependences;
     }
 
+    //Обчислює вираз, написаний для цієї клітини
     public void Calculate()
     {
         if (this.expression != "")

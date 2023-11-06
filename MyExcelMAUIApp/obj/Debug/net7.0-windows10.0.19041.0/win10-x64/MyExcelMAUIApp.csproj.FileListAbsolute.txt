@@ -323,6 +323,9 @@ d:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\obj\Debug\net7
 D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\Antlr4.Runtime.Standard.dll
 D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\DemoParser.Parsing.dll
 D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\DemoParser.Parsing.pdb
+D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\CommunityToolkit.Maui.dll
+D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\CommunityToolkit.Maui.Core.dll
+D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\System.Speech.dll
 D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\AboutAssets.txt
 D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\splashSplashScreen.scale-100.png
 D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\splashSplashScreen.scale-125.png
@@ -544,6 +547,3 @@ D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7
 D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\Microsoft.Windows.System.winmd
 D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\Microsoft.Windows.Widgets.winmd
 D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\Microsoft.UI.Xaml.Controls.pri
-D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\CommunityToolkit.Maui.dll
-D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\CommunityToolkit.Maui.Core.dll
-D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-windows10.0.19041.0\win10-x64\System.Speech.dll

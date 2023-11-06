@@ -270,3 +270,5 @@ D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\obj\Debug\net7
 D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-ios\iossimulator-x64\Antlr4.Runtime.Standard.dll
 D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-ios\iossimulator-x64\DemoParser.Parsing.dll
 D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-ios\iossimulator-x64\DemoParser.Parsing.pdb
+D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-ios\iossimulator-x64\CommunityToolkit.Maui.dll
+D:\Бурсітєт\2_course\ООП\MyExcelMAUIApp\MyExcelMAUIApp\bin\Debug\net7.0-ios\iossimulator-x64\CommunityToolkit.Maui.Core.dll

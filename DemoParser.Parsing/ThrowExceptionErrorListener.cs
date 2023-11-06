@@ -7,13 +7,13 @@ public class ThrowExceptionErrorListener : BaseErrorListener, IAntlrErrorListene
     //BaseErrorListener implementation
     public void SyntaxError(TextWriter output, IRecognizer recognizer, int offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
     {
-        throw new ArgumentException("Invalid Expression: {0}", msg, e);
+        throw new ArgumentException("Неправильний вираз: {0}", msg, e);
     }
 
     //IAntlrErrorListener<int> implementation
     public void SyntaxError(IRecognizer recognizer, int offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
     {
-        throw new ArgumentException("Invalid Expression: {0}", msg, e);
+        throw new ArgumentException("Неправильний вираз: {0}", msg, e);
     }
 
     

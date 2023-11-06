@@ -13,10 +13,10 @@ namespace MyExcelMAUIApp
     {
         const int CountColumn = 20; // кількість стовпчиків (A to Z)
         const int CountRow = 50; // кількість рядків
-        public Table table;
-        public Cell currentcell = null;
-        IFileSaver fileSaver;
-        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(); 
+        public Table table { get; set; } //таблиця
+        public Cell currentcell { get; set; } = null; //обрана клітина
+        IFileSaver fileSaver { get; }
+        CancellationTokenSource cancellationTokenSource { get; } = new CancellationTokenSource();
 
         public MainPage(IFileSaver fileSaver)
         {
@@ -26,37 +26,55 @@ namespace MyExcelMAUIApp
             CreateGrid();
         }
 
-    //створення таблиці
+        //СІтворення таблиці
         private void CreateGrid()
         {
             AddColumnsAndColumnLabels();
             AddRowsAndCellEntries();
         }
 
-        private void ClearGrid()
+        //Зміна таблиці
+        private void ChangeGrid()
         {
-            while (grid.RowDefinitions.Count > 0)
+            var nowRows = grid.RowDefinitions.Count;
+            var nowColumns = grid.ColumnDefinitions.Count - 1;
+            var nextRows = table.CurrentCountRow;
+            var nextColumns = table.CurrentCountColumn;
+            if (nextRows >= nowRows)
             {
-                int lastRowIndex = grid.RowDefinitions.Count - 1;
-                grid.RowDefinitions.RemoveAt(lastRowIndex);
-                grid.Children.RemoveAt(lastRowIndex * (table.CurrentCountColumn + 1)); // Remove label
-                for (int col = 0; col < table.CurrentCountColumn; col++)
+                for (int i = 0; i < nextRows - nowRows; i++)
                 {
-                    grid.Children.RemoveAt((lastRowIndex * table.CurrentCountColumn) + col + 1); // Remove entry
+                    AddRow(false);
                 }
             }
-            while (grid.ColumnDefinitions.Count > 0)
+            else
             {
-                int lastColumnIndex = grid.ColumnDefinitions.Count - 1;
-                grid.ColumnDefinitions.RemoveAt(lastColumnIndex);
-                grid.Children.RemoveAt(lastColumnIndex); //Remove label
+                for (int i = 0; i < nowRows - nextRows; i++)
+                {
+                    DeleteRow(false);
+                }
+            }
+
+            if (nextColumns >= nowColumns)
+            {
+                for (int i = 0; i < nextColumns - nowColumns; i++)
+                {
+                    AddColumn(false);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < nowColumns - nextColumns; i++)
+                {
+                    DeleteColumn(false);
+                }
             }
         }
 
+        //Оновлення таблиці
         private void UpdateGrid()
         {
-            ClearGrid();
-            CreateGrid();
+            ChangeGrid();
             FillTable();
             CalculateTable();
         }
@@ -123,6 +141,7 @@ namespace MyExcelMAUIApp
             }
         }
 
+        //Заповнює таблицю після зчитування файлу
         private void FillTable()
         {
             foreach (Cell cell in table.cells)
@@ -133,7 +152,8 @@ namespace MyExcelMAUIApp
                 cell.cellEntry = cellentry;
             }
         }
-
+        
+        //Перераховує всю таблицю
         private void CalculateTable()
         {
             foreach (Cell cell in table.cells)
@@ -142,6 +162,7 @@ namespace MyExcelMAUIApp
             }
         }
 
+        //Отримує ім'я колонки
         private string GetColumnName(int colIndex)
         {
             int dividend = colIndex;
@@ -154,16 +175,8 @@ namespace MyExcelMAUIApp
             }
             return columnName;
         }
-        // викликається, коли користувач вийде зі зміненої клітинки (втратить фокус)
-        private async void Entry_Unfocused(object sender, FocusEventArgs e)
-        {
-            var entry = (Entry)sender;
-            var row = Grid.GetRow(entry) - 1;
-            var col = Grid.GetColumn(entry) - 1;
-            //entry.Text = textInput.Text;
-            //Cell cell = table.FindCellByEntry(row + 1, col + 1);
-            //cell.Calculate();
-        }
+
+        //Викликається, коли користувач заходить у клітину (набуває фокус)
         private void Entry_Focused(object sender, FocusEventArgs e)
         {
             if (currentcell != null)
@@ -179,21 +192,32 @@ namespace MyExcelMAUIApp
             entry.BackgroundColor = Colors.LightYellow;
         }
 
+        //Викликається, коли користувач виходить з рядка для введення тексту
         private void TextInput_Return(object sender, FocusEventArgs e)
         {
             if (currentcell != null)
             {
-                currentcell.expression = textInput.Text;
-                var calc = table.TryCalculate(currentcell);
+                var calc = table.TryCalculate(currentcell, textInput.Text);
                 if (!calc)
                 {
                     textInput.Text = "";
-                    currentcell.expression = "";
                     CycleError();
+                    CalculateTable();
                 }
-                else{
-                    currentcell.Calculate();
-                    table.RecalculateRecursively(currentcell);
+                else
+                {
+                    try
+                    {
+                        currentcell.Calculate();
+                        table.RecalculateRecursively(currentcell);
+                    }
+                    catch (ArgumentException argex)
+                    {
+                        textInput.Text = "";
+                        table.ClearCellData(currentcell);
+                        ExpressionError(argex.Message);
+                        CalculateTable();
+                    }
                 }
             }
         }
@@ -203,18 +227,23 @@ namespace MyExcelMAUIApp
             await DisplayAlert("Помилка", "Виявлена циклічна залежність!", "OK");
         }
 
+        private async void ExpressionError(string text)
+        {
+            await DisplayAlert("Помилка", text, "OK");
+        }
+
         private async void SaveButton_Clicked(object sender, EventArgs e)
         {
-            
-            //string path = await DisplayPromptAsync("Збереження файлу", "Вкажіть шлях та назву файлу");
             using var stream = new MemoryStream(Encoding.Default.GetBytes("Text"));
             var path = await fileSaver.SaveAsync("table.json", stream, cancellationTokenSource.Token);
-            SavesManager.SaveToJsonTable(table, path.FilePath);
+            if (path != null)
+            {
+                SavesManager.SaveToJsonTable(table, path.FilePath);
+            }
         }
         
         private async void ReadButton_Clicked(object sender, EventArgs e)
         {
-            //string path = await DisplayPromptAsync("Зчитування файлу", "Вкажіть шлях та назву файлу");
             var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
             {
                 { DevicePlatform.WinUI, new[] { ".json" } }
@@ -224,8 +253,11 @@ namespace MyExcelMAUIApp
                 PickerTitle = "Оберіть файл",
                 FileTypes = customFileType
             });
-            table = SavesManager.ReadJsonTable(result.FullPath);
-            UpdateGrid();
+            if (result != null)
+            {
+                table = SavesManager.ReadJsonTable(result.FullPath);
+                UpdateGrid();
+            }
         }
         private async void ExitButton_Clicked(object sender, EventArgs e)
         {
@@ -241,56 +273,61 @@ namespace MyExcelMAUIApp
                 System.Environment.Exit(0);
             }
         }
-
-        /*private override void OnClosing()
-        {
-            bool answer = await DisplayAlert("Підтвердження", "Ви дійсно хочете вийти?", "Так", "Ні");
-            if (answer)
-            {
-                bool answer1 = await DisplayAlert("Збереження", "Зберігати файл?", "Так", "Ні");
-                if (answer1)
-                {
-                    string path = await DisplayPromptAsync("Збереження файлу", "Вкажіть шлях та назву файлу");
-                    SavesManager.SaveToJsonTable(table, path);
-                }
-                System.Environment.Exit(0);
-            }
-        }*/
-
-
         private async void HelpButton_Clicked(object sender, EventArgs e)
         {
             await DisplayAlert("Довідка", "Лабораторна робота 1. Студента Минька Вадима, група К-24. Варіант 11", "OK");
         }
         private void DeleteRowButton_Clicked(object sender, EventArgs e)
         {
+            DeleteRow(true); //видалення зі зміною кількості рядків
+        }
+        private void DeleteRow(bool add)
+        {
             if (grid.RowDefinitions.Count > 1)
             {
                 int lastRowIndex = grid.RowDefinitions.Count - 1;
                 grid.RowDefinitions.RemoveAt(lastRowIndex);
-                grid.Children.RemoveAt(lastRowIndex * (table.CurrentCountColumn + 1)); // Remove label
+                var ce = grid.Children.ElementAt(lastRowIndex * (table.CurrentCountColumn + 1) + table.CurrentCountColumn);
+                grid.Children.RemoveAt(lastRowIndex * (table.CurrentCountColumn + 1) + table.CurrentCountColumn); // Remove label
                 for (int col = 0; col < table.CurrentCountColumn; col++)
                 {
-                    grid.Children.RemoveAt((lastRowIndex * table.CurrentCountColumn) + col + 1); // Remove entry
+                    grid.Children.RemoveAt(lastRowIndex * (table.CurrentCountColumn + 1) + table.CurrentCountColumn); // Remove entry
+                    Cell c = table.FindCellByEntry(table.CurrentCountRow, col + 1);
+                    table.cells.Remove(c);
                 }
             }
-            table.CurrentCountRow--;
+            if (add)
+            {
+                table.CurrentCountRow--;
+            }
         }
+
         private void DeleteColumnButton_Clicked(object sender, EventArgs e)
+        {
+            DeleteColumn(true); //видалення зі зміною кількості колонок
+        }
+
+        private void DeleteColumn(bool add)
         {
             if (grid.ColumnDefinitions.Count > 1)
             {
                 int lastColumnIndex = grid.ColumnDefinitions.Count - 1;
                 grid.ColumnDefinitions.RemoveAt(lastColumnIndex);
-                grid.Children.RemoveAt(lastColumnIndex); // Remove label
-                for (int row = 0; row < table.CurrentCountRow; row++)
+                for (int row = grid.RowDefinitions.Count - 1; row >= 0 ; row--)
                 {
-                    grid.Children.RemoveAt(row * (table.CurrentCountColumn + 1) + lastColumnIndex + 1); // Remove entry
+                    grid.Children.RemoveAt(row * (table.CurrentCountColumn + 1) + 2 * table.CurrentCountColumn); // Remove entry
+                    Cell c = table.FindCellByEntry(row + 1, table.CurrentCountColumn);
+                    table.cells.Remove(c);
                 }
+                grid.Children.RemoveAt(lastColumnIndex - 1);
             }
-            table.CurrentCountColumn--;
+            if (add)
+            {
+                table.CurrentCountColumn--;
+            }
         }
-        private void AddRowButton_Clicked(object sender, EventArgs e)
+
+        private void AddRow(bool add_cell)
         {
             int newRow = grid.RowDefinitions.Count;
             // Add a new row definition
@@ -317,16 +354,29 @@ namespace MyExcelMAUIApp
                     WidthRequest = 100
                 };
                 entry.Focused += Entry_Focused;
-                string cellname = GetColumnName(col + 1)+(newRow).ToString();
-                var cell = new Cell(newRow, col + 1, entry, cellname);
-                Calculator.GlobalScope[cellname] = 0;
+                if (add_cell) //якщо це не при зчитуванні файлу
+                {
+                    string cellname = GetColumnName(col + 1)+(newRow).ToString();
+                    var cell = new Cell(newRow, col + 1, entry, cellname);
+                    Calculator.GlobalScope[cellname] = 0;
+                    table.AddCellToTable(cell);
+                }
                 Grid.SetRow(entry, newRow);
                 Grid.SetColumn(entry, col + 1);
                 grid.Children.Add(entry);
             }
-            table.CurrentCountRow++;
+            if (add_cell)
+            {
+                table.CurrentCountRow++;
+            }
         }
-        private void AddColumnButton_Clicked(object sender, EventArgs e)
+
+        private void AddRowButton_Clicked(object sender, EventArgs e)
+        {
+            AddRow(true); //додавання зі зміною кількості рядків
+        }
+
+        private void AddColumn(bool add_cell)
         {
             int newColumn = grid.ColumnDefinitions.Count;
             // Add a new column definition
@@ -353,14 +403,28 @@ namespace MyExcelMAUIApp
                     WidthRequest = 100
                 };
                 entry.Focused += Entry_Focused;
-                string cellname = GetColumnName(newColumn)+(row + 1).ToString();
-                var cell = new Cell(row + 1, newColumn, entry, cellname);
-                Calculator.GlobalScope[cellname] = 0;
+                if (add_cell) //якщо це не при зчитуванні файлу
+                {
+                    string cellname = GetColumnName(newColumn)+(row + 1).ToString();
+                    var cell = new Cell(row + 1, newColumn, entry, cellname);
+                    Calculator.GlobalScope[cellname] = 0;
+                    table.AddCellToTable(cell);
+                    
+                }
                 Grid.SetRow(entry, row + 1);
                 Grid.SetColumn(entry, newColumn);
                 grid.Children.Add(entry);
             }
-            table.CurrentCountColumn++;
+            if (add_cell)
+            {
+                table.CurrentCountColumn++;
+            }
         }
+
+        private void AddColumnButton_Clicked(object sender, EventArgs e)
+        {
+            AddColumn(true); //додавання зі зміною кількості стовпців
+        }
+        
     }
 }
