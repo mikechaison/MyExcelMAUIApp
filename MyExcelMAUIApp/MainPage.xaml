@@ -6,7 +6,7 @@ x:Class="MyExcelMAUIApp.MainPage">
 <Grid>
 <Grid.RowDefinitions>
 <RowDefinition Height="Auto" />
-<RowDefinition Height="Auto" />
+<RowDefinition Height="45" />
 <RowDefinition Height="*" />
 </Grid.RowDefinitions>
 <Grid.ColumnDefinitions>
@@ -22,10 +22,10 @@ x:Class="MyExcelMAUIApp.MainPage">
 <Button Text="Додати рядок" Clicked="AddRowButton_Clicked" />
 <Button Text="Додати стовпчик" Clicked="AddColumnButton_Clicked" />
 <Button Text="Вийти" Clicked="ExitButton_Clicked" />
-<Label x:Name= "cellLabel" FontSize="28"/>
+<Label x:Name= "CellLabel" FontSize="28"/>
 </StackLayout>
-<Entry x:Name="textInput" Placeholder="Введіть текст" Grid.Row="1" Grid.ColumnSpan="2" Unfocused="TextInput_Return" />
-<ScrollView Grid.Row="2" Grid.ColumnSpan="2">
+<Entry x:Name="TextInput" Placeholder="Введіть текст" Grid.Row="1" Grid.ColumnSpan="2" Unfocused="TextInput_Return" />
+<ScrollView Grid.Row="2" Grid.ColumnSpan="2" Orientation="Both">
 <Grid x:Name="grid">
 </Grid>
 </ScrollView>

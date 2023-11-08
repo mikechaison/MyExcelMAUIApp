@@ -6,17 +6,18 @@ namespace MyExcelMAUIApp;
 
 public class Table
 {
-    [JsonPropertyName("cells")]
+    [JsonPropertyName("Cells")]
     [JsonInclude]
-    public List<Cell> cells { get; set; }
+    public List<Cell> Cells { get; set; }
     [JsonPropertyName("CurrentCountColumn")]
     public int CurrentCountColumn { get; set; }
     [JsonPropertyName("CurrentCountRoW")]
     public int CurrentCountRow { get; set; }
+    public Dictionary<string, Cell> CellNames { get; set; } = new Dictionary<string, Cell>(); //для отримання клітин за іменами
 
     public Table(int row, int col)
     {
-        this.cells = new List<Cell>();
+        this.Cells = new List<Cell>();
         this.CurrentCountRow = row;
         this.CurrentCountColumn = col;
     }
@@ -24,135 +25,111 @@ public class Table
     [JsonConstructor]
     public Table(int currentCountRow, int currentCountColumn, List<Cell> cells)
     {
-        this.cells = cells;
+        this.Cells = cells;
         this.CurrentCountRow = currentCountRow;
         this.CurrentCountColumn = currentCountColumn;
+        foreach(Cell OurCell in this.Cells)
+        {
+            this.CellNames[OurCell.CellName] = OurCell;
+        }
     }
 
     //Додавання клітини в таблицю
-    public void AddCellToTable(Cell cell)
+    public void AddCellToTable(Cell Cll)
     {
-        cells.Add(cell);
+        Cells.Add(Cll);
     }
 
     //Очищення усієї таблиці
     public void ClearTable(){
-        cells.Clear();
-    }
-
-    //Знаходження клітини за його місцезнаходженням
-    public Cell FindCellByEntry(int row, int column)
-    {
-        Cell entryCell = null;
-        foreach (Cell cell in cells)
-        {
-            if (cell.cellRow == row && cell.cellColumn == column)
-            {
-                entryCell = cell;
-            }
-        }
-        return entryCell;
-    }
-
-    //Знаходження клітини за його іменем
-    public Cell FindCellByName(string name)
-    {
-        Cell nameCell = null;
-        foreach (Cell cell in cells)
-        {
-            if (cell.cellName == name)
-            {
-                nameCell = cell;
-            }
-        }
-        return nameCell;
+        Cells.Clear();
     }
 
     //Очищення даних клітини таблиці
-    public void ClearCellData(Cell ourcell)
+    public void ClearCellData(Cell OurCell)
     {
-        foreach (string celln in ourcell.dependences)
+        foreach (string Celln in OurCell.Dependences)
         {
-            Cell cellByName = FindCellByName(celln);
-            cellByName.appearance.Remove(ourcell.cellName);
+            Cell CellByName = CellNames[Celln];
+            CellByName.Appearance.Remove(OurCell.CellName);
         }
-        ourcell.expression = "";
-        ourcell.dependences = new List<string>();
-        Calculator.GlobalScope[ourcell.cellName] = 0;
-        ourcell.cellEntry.Text = "";
+        OurCell.Expression = "";
+        OurCell.Dependences = new List<string>();
+        Calculator.GlobalScope[OurCell.CellName] = 0;
+        OurCell.CellEntry.Text = "";
             
     }
 
     //Підготовка до перевірки на циклічну залежність
-    public bool TryCalculate(Cell ourcell, string expr)
+    public bool TryCalculate(Cell OurCell, string Expr)
     {
-        var prevcells = ParseName(ourcell.expression);
-        foreach (string celln in prevcells)
+        var PrevCells = ParseName(OurCell.Expression);
+        foreach (string Celln in PrevCells)
         {
-            Cell cellByName = FindCellByName(celln);
-            cellByName.appearance.Remove(ourcell.cellName);
+            Cell CellByName = CellNames[Celln];
+            CellByName.Appearance.Remove(OurCell.CellName);
         }
-        var usedcells = ParseName(expr);
-        ourcell.dependences = new List<string>();
-        foreach (string celln in usedcells)
+        var UsedCells = ParseName(Expr);
+        OurCell.Dependences = new List<string>();
+        foreach (string Celln in UsedCells)
         {
-            ourcell.dependences.Add(celln);
-            Cell cellByName = FindCellByName(celln);
-            cellByName.appearance.Add(ourcell.cellName);
+            OurCell.Dependences.Add(Celln);
+            Cell CellByName = CellNames[Celln];
+            CellByName.Appearance.Add(OurCell.CellName);
         }
-        ourcell.expression = expr;
-        if (CheckRecursion(ourcell.cellName, ourcell))
+        OurCell.Expression = Expr;
+        if (CheckRecursion(OurCell.CellName, OurCell))
         {
-            ClearCellData(ourcell);
+            ClearCellData(OurCell);
             return false;
         }
         return true;
     }
 
     //Добування ідентифікаторів з виразу в клітині
-    public static List<string> ParseName(string expression)
+    public static List<string> ParseName(string Expression)
     {
-        string[] lst = expression.Split(new char[]{'.', ',', ' ', '(', ')', '-', '+', '^', '*', '/'},
+        string[] Lst = Expression.Split(new char[]{'.', ',', ' ', '(', ')', '-', '+', '^', '*', '/'},
         StringSplitOptions.RemoveEmptyEntries);
-        List <string> ans = new List<string>();
-        foreach(var str in lst)
+        List <string> Ans = new List<string>();
+        foreach(var Str in Lst)
         {
-            if( str[0] >= 'A' && str[0] <= 'Z' && str[str.Length-1] >= '0' && str[str.Length-1] <= '9' )
+            if( Str[0] >= 'A' && Str[0] <= 'Z' && Str[Str.Length-1] >= '0' && Str[Str.Length-1] <= '9' )
             {
-                ans.Add(str);
+                Ans.Add(Str);
             }
         }
-        return ans;
+        return Ans;
     }
 
     //Перевірка на циклічну залежність
-    public bool CheckRecursion(string target, Cell cell)
+    public bool CheckRecursion(string Target, Cell Cll)
     {
-        bool ans = false;
-        foreach (string cellt in cell.dependences)
+        bool Ans = false;
+        foreach (string Cellt in Cll.Dependences)
         {
-            if (cellt == target)
+            if (Cellt == Target)
             {
-                ans = true;
+                Ans = true;
             }
             else
             {
-                Cell ourcell = FindCellByName(cellt);
-                ans |= CheckRecursion(target, ourcell);
+                Cell OurCell = CellNames[Cellt];
+                Ans |= CheckRecursion(Target, OurCell);
             }
         }
-        return ans;
+        return Ans;
     }
 
     //Переобчислення виразів в клітинах, які залежать від обраної клітини
-    public void RecalculateRecursively(Cell cell)
+    public void RecalculateRecursively(Cell Cll)
     {
-        foreach (string cellt in cell.appearance)
+        foreach (string Cellt in Cll.Appearance)
         {
-            Cell ourcell = FindCellByName(cellt);
-            Console.WriteLine(cellt);
-            ourcell.Calculate();
-            RecalculateRecursively(ourcell);
+            Cell OurCell = CellNames[Cellt];
+            Console.WriteLine(Cellt);
+            OurCell.Calculate();
+            RecalculateRecursively(OurCell);
         }
     }   
 }

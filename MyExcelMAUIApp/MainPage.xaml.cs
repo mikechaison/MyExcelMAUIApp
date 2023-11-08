@@ -13,14 +13,17 @@ namespace MyExcelMAUIApp
     {
         const int CountColumn = 20; // кількість стовпчиків (A to Z)
         const int CountRow = 50; // кількість рядків
-        public Table table { get; set; } //таблиця
-        public Cell currentcell { get; set; } = null; //обрана клітина
+        public Table OurTable { get; set; } //таблиця
+        public Cell CurrentCell { get; set; } = null; //обрана клітина
+        public Dictionary<int, Label> GridRowLabels { get; set; } = new Dictionary<int, Label>(); //лейбли для рядків
+        public Dictionary<int, Label> GridColumnLabels { get; set; } = new Dictionary<int, Label>(); //лейбли для стовпчиків
+        public Dictionary<string, Entry> GridEntries { get; set; } = new Dictionary<string, Entry>(); //клітинки за іменем
         IFileSaver fileSaver { get; }
         CancellationTokenSource cancellationTokenSource { get; } = new CancellationTokenSource();
 
         public MainPage(IFileSaver fileSaver)
         {
-            table = new Table(CountRow, CountColumn);
+            OurTable = new Table(CountRow, CountColumn);
             this.fileSaver = fileSaver;
             InitializeComponent();
             CreateGrid();
@@ -36,35 +39,35 @@ namespace MyExcelMAUIApp
         //Зміна таблиці
         private void ChangeGrid()
         {
-            var nowRows = grid.RowDefinitions.Count;
-            var nowColumns = grid.ColumnDefinitions.Count - 1;
-            var nextRows = table.CurrentCountRow;
-            var nextColumns = table.CurrentCountColumn;
-            if (nextRows >= nowRows)
+            var NowRows = grid.RowDefinitions.Count;
+            var NowColumns = grid.ColumnDefinitions.Count - 1;
+            var NextRows = OurTable.CurrentCountRow;
+            var NextColumns = OurTable.CurrentCountColumn;
+            if (NextRows >= NowRows)
             {
-                for (int i = 0; i < nextRows - nowRows; i++)
+                for (int i = 0; i < NextRows - NowRows; i++)
                 {
                     AddRow(false);
                 }
             }
             else
             {
-                for (int i = 0; i < nowRows - nextRows; i++)
+                for (int i = 0; i < NowRows - NextRows; i++)
                 {
                     DeleteRow(false);
                 }
             }
 
-            if (nextColumns >= nowColumns)
+            if (NextColumns >= NowColumns)
             {
-                for (int i = 0; i < nextColumns - nowColumns; i++)
+                for (int i = 0; i < NextColumns - NowColumns; i++)
                 {
                     AddColumn(false);
                 }
             }
             else
             {
-                for (int i = 0; i < nowColumns - nextColumns; i++)
+                for (int i = 0; i < NowColumns - NextColumns; i++)
                 {
                     DeleteColumn(false);
                 }
@@ -81,47 +84,49 @@ namespace MyExcelMAUIApp
         private void AddColumnsAndColumnLabels()
         {
             // Додати стовпці та підписи для стовпців
-            for (int col = 0; col < table.CurrentCountColumn + 1; col++)
+            for (int Col = 0; Col < OurTable.CurrentCountColumn + 1; Col++)
             {
                 grid.ColumnDefinitions.Add(new ColumnDefinition{ Width = 100 });
-                if (col > 0)
+                if (Col > 0)
                 {
-                    var label = new Label
+                    var OurLabel = new Label
                     {
-                        Text = GetColumnName(col),
+                        Text = GetColumnName(Col),
                         VerticalOptions = LayoutOptions.Center,
                         HorizontalOptions = LayoutOptions.Center
                     };
-                    Grid.SetRow(label, 0);
-                    Grid.SetColumn(label, col);
-                    grid.Children.Add(label);
+                    Grid.SetRow(OurLabel, 0);
+                    Grid.SetColumn(OurLabel, Col);
+                    grid.Children.Add(OurLabel);
+                    GridColumnLabels[Col] = OurLabel;
                 }
                 else
                 {
-                    grid.ColumnDefinitions[col].Width = 40;
+                    grid.ColumnDefinitions[Col].Width = 40;
                 }
             }
         }
         private void AddRowsAndCellEntries()
         {
             // Додати рядки, підписи для рядків та комірки
-            for (int row = 0; row < table.CurrentCountRow; row++)
+            for (int Row = 0; Row < OurTable.CurrentCountRow; Row++)
             {
                 grid.RowDefinitions.Add(new RowDefinition());
                 // Додати підпис для номера рядка
-                var label = new Label
+                var OurLabel = new Label
                 {
-                    Text = (row + 1).ToString(),
+                    Text = (Row + 1).ToString(),
                     VerticalOptions = LayoutOptions.Center,
                     HorizontalOptions = LayoutOptions.Center
                 };
-                Grid.SetRow(label, row + 1);
-                Grid.SetColumn(label, 0);
-                grid.Children.Add(label);
+                Grid.SetRow(OurLabel, Row + 1);
+                Grid.SetColumn(OurLabel, 0);
+                grid.Children.Add(OurLabel);
+                GridRowLabels[Row + 1] = OurLabel;
                 // Додати комірки (Entry) для вмісту
-                for (int col = 0; col < table.CurrentCountColumn; col++)
+                for (int Col = 0; Col < OurTable.CurrentCountColumn; Col++)
                 {
-                    var entry = new Entry
+                    var OurEntry = new Entry
                     {
                         Text = "",
                         VerticalOptions = LayoutOptions.Center,
@@ -129,14 +134,16 @@ namespace MyExcelMAUIApp
                         IsReadOnly = true,
                         WidthRequest = 100
                     };
-                    entry.Focused += Entry_Focused; // обробник події Focused
-                    string cellname = GetColumnName(col + 1)+(row + 1).ToString();
-                    var cell = new Cell(row + 1, col + 1, entry, cellname);
-                    Calculator.GlobalScope[cellname] = 0;
-                    table.AddCellToTable(cell);
-                    Grid.SetRow(entry, row + 1);
-                    Grid.SetColumn(entry, col + 1);
-                    grid.Children.Add(entry);
+                    OurEntry.Focused += Entry_Focused; // обробник події Focused
+                    string CellName = GetColumnName(Col + 1)+(Row + 1).ToString();
+                    var OurCell = new Cell(Row + 1, Col + 1, OurEntry, CellName);
+                    Calculator.GlobalScope[CellName] = 0;
+                    OurTable.AddCellToTable(OurCell);
+                    Grid.SetRow(OurEntry, Row + 1);
+                    Grid.SetColumn(OurEntry, Col + 1);
+                    grid.Children.Add(OurEntry);
+                    GridEntries[CellName] = OurEntry;
+                    OurTable.CellNames[CellName] = OurCell;
                 }
             }
         }
@@ -144,63 +151,63 @@ namespace MyExcelMAUIApp
         //Заповнює таблицю після зчитування файлу
         private void FillTable()
         {
-            foreach (Cell cell in table.cells)
+            foreach (Cell OurCell in OurTable.Cells)
             {
-                int ind = table.CurrentCountColumn + (table.CurrentCountColumn + 1) * ( cell.cellRow - 1) + cell.cellColumn;
-                Entry cellentry = (Entry)grid.Children.ElementAt(ind);
-                cellentry.Text = cell.expression; 
-                cell.cellEntry = cellentry;
+                Entry CellEntry = GridEntries[OurCell.CellName];
+                CellEntry.Text = OurCell.Expression;
+                OurCell.CellEntry = CellEntry;
             }
         }
         
         //Перераховує всю таблицю
         private void CalculateTable()
         {
-            foreach (Cell cell in table.cells)
+            foreach (Cell OurCell in OurTable.Cells)
             {
-                cell.Calculate();
+                OurCell.Calculate();
             }
         }
 
         //Отримує ім'я колонки
-        private string GetColumnName(int colIndex)
+        private string GetColumnName(int ColIndex)
         {
-            int dividend = colIndex;
-            string columnName = string.Empty;
-            while (dividend > 0)
+            int Dividend = ColIndex;
+            string ColumnName = string.Empty;
+            while (Dividend > 0)
             {
-                int modulo = (dividend - 1) % 26;
-                columnName = Convert.ToChar(65 + modulo) + columnName;
-                dividend = (dividend - modulo) / 26;
+                int Modulo = (Dividend - 1) % 26;
+                ColumnName = Convert.ToChar(65 + Modulo) + ColumnName;
+                Dividend = (Dividend - Modulo) / 26;
             }
-            return columnName;
+            return ColumnName;
         }
 
         //Викликається, коли користувач заходить у клітину (набуває фокус)
         private void Entry_Focused(object sender, FocusEventArgs e)
         {
-            if (currentcell != null)
+            if (CurrentCell != null)
             {
-                currentcell.cellEntry.BackgroundColor = Colors.White;
+                CurrentCell.CellEntry.BackgroundColor = Colors.White;
             }
-            var entry = (Entry)sender;
-            var row = Grid.GetRow(entry) - 1;
-            var col = Grid.GetColumn(entry) - 1;
-            currentcell = table.FindCellByEntry(row + 1, col + 1);
-            textInput.Text = currentcell.expression;
-            cellLabel.Text = currentcell.cellName;
-            entry.BackgroundColor = Colors.LightYellow;
+            var OurEntry = (Entry)sender;
+            var Row = Grid.GetRow(OurEntry) - 1;
+            var Col = Grid.GetColumn(OurEntry) - 1;
+            var CellName = GetColumnName(Col + 1)+(Row + 1).ToString();
+            CurrentCell = OurTable.CellNames[CellName];
+            TextInput.Text = CurrentCell.Expression;
+            CellLabel.Text = CurrentCell.CellName;
+            OurEntry.BackgroundColor = Colors.LightYellow;
         }
 
         //Викликається, коли користувач виходить з рядка для введення тексту
         private void TextInput_Return(object sender, FocusEventArgs e)
         {
-            if (currentcell != null)
+            if (CurrentCell != null)
             {
-                var calc = table.TryCalculate(currentcell, textInput.Text);
+                var calc = OurTable.TryCalculate(CurrentCell, TextInput.Text);
                 if (!calc)
                 {
-                    textInput.Text = "";
+                    TextInput.Text = "";
                     CycleError();
                     CalculateTable();
                 }
@@ -208,13 +215,13 @@ namespace MyExcelMAUIApp
                 {
                     try
                     {
-                        currentcell.Calculate();
-                        table.RecalculateRecursively(currentcell);
+                        CurrentCell.Calculate();
+                        OurTable.RecalculateRecursively(CurrentCell);
                     }
                     catch (ArgumentException argex)
                     {
-                        textInput.Text = "";
-                        table.ClearCellData(currentcell);
+                        TextInput.Text = "";
+                        OurTable.ClearCellData(CurrentCell);
                         ExpressionError(argex.Message);
                         CalculateTable();
                     }
@@ -227,19 +234,24 @@ namespace MyExcelMAUIApp
             await DisplayAlert("Помилка", "Виявлена циклічна залежність!", "OK");
         }
 
-        private async void ExpressionError(string text)
+        private async void ExpressionError(string Text)
         {
-            await DisplayAlert("Помилка", text, "OK");
+            await DisplayAlert("Помилка", Text, "OK");
+        }
+
+        private async void SaveFile()
+        {
+            using var stream = new MemoryStream(Encoding.Default.GetBytes("Text"));
+            var path = await fileSaver.SaveAsync("OurTable.json", stream, cancellationTokenSource.Token);
+            if (path.FilePath != null)
+            {
+                SavesManager.SaveToJsonTable(OurTable, path.FilePath);
+            }
         }
 
         private async void SaveButton_Clicked(object sender, EventArgs e)
         {
-            using var stream = new MemoryStream(Encoding.Default.GetBytes("Text"));
-            var path = await fileSaver.SaveAsync("table.json", stream, cancellationTokenSource.Token);
-            if (path != null)
-            {
-                SavesManager.SaveToJsonTable(table, path.FilePath);
-            }
+            SaveFile();
         }
         
         private async void ReadButton_Clicked(object sender, EventArgs e)
@@ -255,7 +267,7 @@ namespace MyExcelMAUIApp
             });
             if (result != null)
             {
-                table = SavesManager.ReadJsonTable(result.FullPath);
+                OurTable = SavesManager.ReadJsonTable(result.FullPath);
                 UpdateGrid();
             }
         }
@@ -267,8 +279,7 @@ namespace MyExcelMAUIApp
                 bool answer1 = await DisplayAlert("Збереження", "Зберігати файл?", "Так", "Ні");
                 if (answer1)
                 {
-                    string path = await DisplayPromptAsync("Збереження файлу", "Вкажіть шлях та назву файлу");
-                    SavesManager.SaveToJsonTable(table, path);
+                    SaveFile();
                 }
                 System.Environment.Exit(0);
             }
@@ -281,24 +292,29 @@ namespace MyExcelMAUIApp
         {
             DeleteRow(true); //видалення зі зміною кількості рядків
         }
-        private void DeleteRow(bool add)
+
+        private void DeleteRow(bool Add)
         {
             if (grid.RowDefinitions.Count > 1)
             {
-                int lastRowIndex = grid.RowDefinitions.Count - 1;
-                grid.RowDefinitions.RemoveAt(lastRowIndex);
-                var ce = grid.Children.ElementAt(lastRowIndex * (table.CurrentCountColumn + 1) + table.CurrentCountColumn);
-                grid.Children.RemoveAt(lastRowIndex * (table.CurrentCountColumn + 1) + table.CurrentCountColumn); // Remove label
-                for (int col = 0; col < table.CurrentCountColumn; col++)
+                int LastRowIndex = grid.RowDefinitions.Count - 1;
+                grid.RowDefinitions.RemoveAt(LastRowIndex);
+                grid.Children.Remove(GridRowLabels[LastRowIndex]); // Remove label
+                for (int Col = 0; Col < OurTable.CurrentCountColumn; Col++) //Remove entries
                 {
-                    grid.Children.RemoveAt(lastRowIndex * (table.CurrentCountColumn + 1) + table.CurrentCountColumn); // Remove entry
-                    Cell c = table.FindCellByEntry(table.CurrentCountRow, col + 1);
-                    table.cells.Remove(c);
+                    string CellName = GetColumnName(Col + 1)+LastRowIndex.ToString();
+                    Entry CellEntry = GridEntries[CellName];
+                    grid.Children.Remove(CellEntry);
+                    if (Add)
+                    {
+                        Cell OurCell = OurTable.CellNames[CellName];
+                        OurTable.Cells.Remove(OurCell);
+                    }
                 }
             }
-            if (add)
+            if (Add)
             {
-                table.CurrentCountRow--;
+                OurTable.CurrentCountRow--;
             }
         }
 
@@ -307,45 +323,51 @@ namespace MyExcelMAUIApp
             DeleteColumn(true); //видалення зі зміною кількості колонок
         }
 
-        private void DeleteColumn(bool add)
+        private void DeleteColumn(bool Add)
         {
             if (grid.ColumnDefinitions.Count > 1)
             {
-                int lastColumnIndex = grid.ColumnDefinitions.Count - 1;
-                grid.ColumnDefinitions.RemoveAt(lastColumnIndex);
-                for (int row = grid.RowDefinitions.Count - 1; row >= 0 ; row--)
+                int LastColumnIndex = grid.ColumnDefinitions.Count - 1;
+                grid.ColumnDefinitions.RemoveAt(LastColumnIndex);
+                grid.Children.Remove(GridColumnLabels[LastColumnIndex]); // Remove label
+                for (int Row = OurTable.CurrentCountRow; Row > 0 ; Row--) //Remove entries
                 {
-                    grid.Children.RemoveAt(row * (table.CurrentCountColumn + 1) + 2 * table.CurrentCountColumn); // Remove entry
-                    Cell c = table.FindCellByEntry(row + 1, table.CurrentCountColumn);
-                    table.cells.Remove(c);
+                    string CellName = GetColumnName(LastColumnIndex)+Row.ToString();
+                    Entry CellEntry = GridEntries[CellName];
+                    grid.Children.Remove(CellEntry);
+                    if (Add)
+                    {
+                        Cell OurCell = OurTable.CellNames[CellName];
+                        OurTable.Cells.Remove(OurCell);
+                    }
                 }
-                grid.Children.RemoveAt(lastColumnIndex - 1);
             }
-            if (add)
+            if (Add)
             {
-                table.CurrentCountColumn--;
+                OurTable.CurrentCountColumn--;
             }
         }
 
-        private void AddRow(bool add_cell)
+        private void AddRow(bool AddCell)
         {
-            int newRow = grid.RowDefinitions.Count;
-            // Add a new row definition
+            int NewRow = grid.RowDefinitions.Count;
+            // Add a new Row definition
             grid.RowDefinitions.Add(new RowDefinition());
-            // Add label for the row number
-            var label = new Label
+            // Add laberl for the Row number
+            var OurLabel = new Label
             {
-                Text = newRow.ToString(),
+                Text = NewRow.ToString(),
                 VerticalOptions = LayoutOptions.Center,
                 HorizontalOptions = LayoutOptions.Center
             };
-            Grid.SetRow(label, newRow);
-            Grid.SetColumn(label, 0);
-            grid.Children.Add(label);
-            // Add entry cells for the new row
-            for (int col = 0; col < table.CurrentCountColumn; col++)
+            Grid.SetRow(OurLabel, NewRow);
+            Grid.SetColumn(OurLabel, 0);
+            grid.Children.Add(OurLabel);
+            GridRowLabels[NewRow] = OurLabel;
+            // Add OurEntry cells for the new Row
+            for (int Col = 0; Col < OurTable.CurrentCountColumn; Col++)
             {
-                var entry = new Entry
+                var OurEntry = new Entry
                 {
                     Text = "",
                     VerticalOptions = LayoutOptions.Center,
@@ -353,21 +375,24 @@ namespace MyExcelMAUIApp
                     IsReadOnly = true,
                     WidthRequest = 100
                 };
-                entry.Focused += Entry_Focused;
-                if (add_cell) //якщо це не при зчитуванні файлу
+                OurEntry.Focused += Entry_Focused;
+                string CellName = GetColumnName(Col + 1)+NewRow.ToString();
+                GridEntries[CellName] = OurEntry;
+                if (AddCell) //якщо це не при зчитуванні файлу
                 {
-                    string cellname = GetColumnName(col + 1)+(newRow).ToString();
-                    var cell = new Cell(newRow, col + 1, entry, cellname);
-                    Calculator.GlobalScope[cellname] = 0;
-                    table.AddCellToTable(cell);
+                    var OurCell = new Cell(NewRow, Col + 1, OurEntry, CellName);
+                    Calculator.GlobalScope[CellName] = 0;
+                    OurTable.AddCellToTable(OurCell);
+                    OurTable.CellNames[CellName] = OurCell;
                 }
-                Grid.SetRow(entry, newRow);
-                Grid.SetColumn(entry, col + 1);
-                grid.Children.Add(entry);
+                Grid.SetRow(OurEntry, NewRow);
+                Grid.SetColumn(OurEntry, Col + 1);
+                grid.Children.Add(OurEntry);
+                
             }
-            if (add_cell)
+            if (AddCell)
             {
-                table.CurrentCountRow++;
+                OurTable.CurrentCountRow++;
             }
         }
 
@@ -376,25 +401,26 @@ namespace MyExcelMAUIApp
             AddRow(true); //додавання зі зміною кількості рядків
         }
 
-        private void AddColumn(bool add_cell)
+        private void AddColumn(bool AddCell)
         {
-            int newColumn = grid.ColumnDefinitions.Count;
+            int NewColumn = grid.ColumnDefinitions.Count;
             // Add a new column definition
             grid.ColumnDefinitions.Add(new ColumnDefinition{ Width = 100 });
             // Add label for the column name
-            var label = new Label
+            var OurLabel = new Label
             {
-                Text = GetColumnName(newColumn),
+                Text = GetColumnName(NewColumn),
                 VerticalOptions = LayoutOptions.Center,
                 HorizontalOptions = LayoutOptions.Center
             };
-            Grid.SetRow(label, 0);
-            Grid.SetColumn(label, newColumn);
-            grid.Children.Add(label);
-            // Add entry cells for the new column
-            for (int row = 0; row < table.CurrentCountRow; row++)
+            Grid.SetRow(OurLabel, 0);
+            Grid.SetColumn(OurLabel, NewColumn);
+            grid.Children.Add(OurLabel);
+            GridColumnLabels[NewColumn] = OurLabel;
+            // Add OurEntry cells for the new column
+            for (int Row = 0; Row < OurTable.CurrentCountRow; Row++)
             {
-                var entry = new Entry
+                var OurEntry = new Entry
                 {
                     Text = "",
                     VerticalOptions = LayoutOptions.Center,
@@ -402,22 +428,23 @@ namespace MyExcelMAUIApp
                     IsReadOnly = true,
                     WidthRequest = 100
                 };
-                entry.Focused += Entry_Focused;
-                if (add_cell) //якщо це не при зчитуванні файлу
+                OurEntry.Focused += Entry_Focused;
+                string CellName = GetColumnName(NewColumn)+(Row + 1).ToString();
+                GridEntries[CellName] = OurEntry;
+                if (AddCell) //якщо це не при зчитуванні файлу
                 {
-                    string cellname = GetColumnName(newColumn)+(row + 1).ToString();
-                    var cell = new Cell(row + 1, newColumn, entry, cellname);
-                    Calculator.GlobalScope[cellname] = 0;
-                    table.AddCellToTable(cell);
-                    
+                    var OurCell = new Cell(Row + 1, NewColumn, OurEntry, CellName);
+                    Calculator.GlobalScope[CellName] = 0;
+                    OurTable.AddCellToTable(OurCell);
+                    OurTable.CellNames[CellName] = OurCell;
                 }
-                Grid.SetRow(entry, row + 1);
-                Grid.SetColumn(entry, newColumn);
-                grid.Children.Add(entry);
+                Grid.SetRow(OurEntry, Row + 1);
+                Grid.SetColumn(OurEntry, NewColumn);
+                grid.Children.Add(OurEntry);
             }
-            if (add_cell)
+            if (AddCell)
             {
-                table.CurrentCountColumn++;
+                OurTable.CurrentCountColumn++;
             }
         }
 

@@ -6,54 +6,54 @@ namespace MyExcelMAUIApp;
 
 public class Cell
 {
-    [JsonPropertyName("cellRow")]
-    public int cellRow { get; set; }
-    [JsonPropertyName("cellColumn")]
-    public int cellColumn { get; set; }
-    [JsonPropertyName("cellName")]
-    public string cellName { get; set; }
+    [JsonPropertyName("CellRow")]
+    public int CellRow { get; set; }
+    [JsonPropertyName("CellColumn")]
+    public int CellColumn { get; set; }
+    [JsonPropertyName("CellName")]
+    public string CellName { get; set; }
     [JsonIgnore]
-    public Entry cellEntry { get; set; }
-    [JsonPropertyName("expression")]
-    public string expression { get; set; }
-    [JsonPropertyName("appearance")]
+    public Entry CellEntry { get; set; }
+    [JsonPropertyName("Expression")]
+    public string Expression { get; set; }
+    [JsonPropertyName("Appearance")]
     [JsonInclude]
-    public List <string> appearance { get; set; }
-    [JsonPropertyName("dependences")]
+    public List <string> Appearance { get; set; }
+    [JsonPropertyName("Dependences")]
     [JsonInclude]
-    public List <string> dependences { get; set; }
+    public List <string> Dependences { get; set; }
 
     public Cell(int row, int column, Entry entry, string name)
     {
-        this.cellRow = row;
-        this.cellColumn = column;
-        this.cellEntry = entry;
-        this.expression = "";
-        this.cellName = name;
-        this.appearance = new List<string>();
-        this.dependences = new List<string>();
+        this.CellRow = row;
+        this.CellColumn = column;
+        this.CellEntry = entry;
+        this.Expression = "";
+        this.CellName = name;
+        this.Appearance = new List<string>();
+        this.Dependences = new List<string>();
     }
 
     [JsonConstructor]
-    public Cell(int cellRow, int cellColumn, string expression, string cellName, List<string> appearance, List<string> dependences)
+    public Cell(int CellRow, int CellColumn, string Expression, string CellName, List<string> Appearance, List<string> Dependences)
     {
-        this.cellRow = cellRow;
-        this.cellColumn = cellColumn;
-        this.expression = expression;
-        this.cellName = cellName;
-        this.appearance = appearance;
-        this.dependences = dependences;
+        this.CellRow = CellRow;
+        this.CellColumn = CellColumn;
+        this.Expression = Expression;
+        this.CellName = CellName;
+        this.Appearance = Appearance;
+        this.Dependences = Dependences;
     }
 
     //Обчислює вираз, написаний для цієї клітини
     public void Calculate()
     {
-        if (this.expression != "")
+        if (this.Expression != "")
         {
-            var val  = Calculator.Evaluate(this.expression);
+            var val  = Calculator.Evaluate(this.Expression);
             var content = val.ToString();
-            Calculator.GlobalScope[this.cellName] = val;
-            this.cellEntry.Text = content;
+            Calculator.GlobalScope[this.CellName] = val;
+            this.CellEntry.Text = content;
         }
     }
 }

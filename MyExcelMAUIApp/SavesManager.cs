@@ -7,22 +7,21 @@ namespace MyExcelMAUIApp;
 public static class SavesManager 
 {
     //Збереження json-таблиці
-    public async static void SaveToJsonTable(Table table, string path)
+    public async static void SaveToJsonTable(Table OurTable, string Path)
     {
-        string JTable = JsonSerializer.Serialize(table);
-        File.WriteAllText(@path, JTable);
+        string JTable = JsonSerializer.Serialize(OurTable);
+        File.WriteAllText(@Path, JTable);
     }
 
     //Зчитування json-таблиці
-    public static Table ReadJsonTable(string path)
+    public static Table ReadJsonTable(string Path)
     {
-        string JTable = File.ReadAllText(@path);
-        Table newtable = JsonSerializer.Deserialize<Table>(JTable, new JsonSerializerOptions 
+        string JTable = File.ReadAllText(@Path);
+        Table NewTable = JsonSerializer.Deserialize<Table>(JTable, new JsonSerializerOptions 
         {
             IncludeFields = true,
             PropertyNameCaseInsensitive = true
         });
-        return newtable;
+        return NewTable;
     }
-
 }
